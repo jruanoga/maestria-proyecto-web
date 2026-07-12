@@ -1,1 +1,23 @@
-<p>dashboard works!</p>
+<mat-toolbar color="primary">
+  <span>StudyMate AI</span>
+  <span class="spacer"></span>
+  <button mat-stroked-button (click)="cerrarSesion()">
+    <mat-icon>logout</mat-icon>
+    Cerrar Sesión
+  </button>
+</mat-toolbar>
+
+<div class="dashboard-content">
+  <mat-card class="welcome-card">
+    <mat-card-header>
+      <mat-card-title>¡Bienvenido, {{ nombreUsuario }}!</mat-card-title>
+      <mat-card-subtitle>Tu asistente de estudio con IA</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <p>Sube un documento y genera resúmenes y quizzes automáticamente.</p>
+    </mat-card-content>
+    <mat-card-actions>
+      <button mat-raised-button color="primary">Subir Documento</button>
+    </mat-card-actions>
+  </mat-card>
+</div>
