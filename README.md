@@ -7,5 +7,5 @@ StudyMate AI es un asistente de estudio que ayuda a estudiantes a comprender y r
 ## Stack Tecnológico
 * **Frontend:** Angular
 * **Backend:** Java + Spring Boot
-* **Base de Datos:** PostgreSQL
+* **Base de Datos:** MySQL
 * **IA:** Spring AI + Modelos de Lenguaje
