@@ -1,23 +1,22 @@
-<mat-toolbar color="primary">
-  <span>StudyMate AI</span>
-  <span class="spacer"></span>
-  <button mat-stroked-button (click)="cerrarSesion()">
-    <mat-icon>logout</mat-icon>
-    Cerrar Sesión
-  </button>
-</mat-toolbar>
+<mat-card class="welcome-card">
+  <mat-card-header>
+    <mat-card-title>Mis Documentos</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <table mat-table [dataSource]="(documentos$ | async) ?? []" class="mat-elevation-z1">
 
-<div class="dashboard-content">
-  <mat-card class="welcome-card">
-    <mat-card-header>
-      <mat-card-title>¡Bienvenido, {{ nombreUsuario }}!</mat-card-title>
-      <mat-card-subtitle>Tu asistente de estudio con IA</mat-card-subtitle>
-    </mat-card-header>
-    <mat-card-content>
-      <p>Sube un documento y genera resúmenes y quizzes automáticamente.</p>
-    </mat-card-content>
-    <mat-card-actions>
-      <button mat-raised-button color="primary">Subir Documento</button>
-    </mat-card-actions>
-  </mat-card>
-</div>
+      <ng-container matColumnDef="titulo">
+        <th mat-header-cell *matHeaderCellDef>Título</th>
+        <td mat-cell *matCellDef="let doc">{{ doc.titulo }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="materia">
+        <th mat-header-cell *matHeaderCellDef>Materia</th>
+        <td mat-cell *matCellDef="let doc">{{ doc.materia }}</td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="columnasVisibles"></tr>
+      <tr mat-row *matRowDef="let row; columns: columnasVisibles;"></tr>
+    </table>
+  </mat-card-content>
+</mat-card>

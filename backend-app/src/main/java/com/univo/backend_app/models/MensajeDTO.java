@@ -1,5 +1,12 @@
 package com.univo.backend_app.models;
+import jakarta.persistence.*;
+@Entity // Le dice a Spring que esto será una tabla en PostgreSQL
+@Table(name = "mensajes")
+
 public class MensajeDTO {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id; // Llave primaria autoincrementable
     private String texto;
     private String remitente;
     // Constructores
