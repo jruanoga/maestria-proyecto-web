@@ -8,6 +8,7 @@ import java.util.Map;
 @RequestMapping("/api/v1/ia")
 @CrossOrigin(origins = "http://localhost:4200")
 public class AiController {
+
     private final InteligenciaArtificialService iaService;
 
     public AiController(InteligenciaArtificialService iaService) {
@@ -18,5 +19,12 @@ public class AiController {
     public Map<String, String> preguntarIa(@RequestParam String pregunta) {
         String respuesta = iaService.generarRespuestaSimple(pregunta);
         return Map.of("respuesta", respuesta);
+    }
+
+    @PostMapping("/resumen")
+    public Map<String, String> generarResumen(@RequestBody Map<String, String> body) {
+        String contenido = body.get("contenido");
+        String resumen = iaService.generarResumen(contenido);
+        return Map.of("resumen", resumen);
     }
 }
