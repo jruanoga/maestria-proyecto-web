@@ -48,26 +48,31 @@
 <div class="dashboard-container" style="padding: 20px;">
   <mat-card class="ai-card">
     <mat-card-header>
-      <mat-card-title>Asistente Inteligente (SaaS AI)</mat-card-title>
+      <mat-card-title>Generador de Resúmenes con IA</mat-card-title>
     </mat-card-header>
     <mat-card-content style="margin-top: 15px;">
       <mat-form-field appearance="outline" style="width: 100%;">
-        <mat-label>Escribe un texto o consulta para analizar...</mat-label>
-        <input matInput [(ngModel)]="textoUsuario" placeholder="Ej. Analiza este reporte de ventas...">
+        <mat-label>Pega el contenido de tu documento o apunte...</mat-label>
+        <textarea matInput [(ngModel)]="contenidoDocumento" rows="6"
+                  placeholder="Pega aquí el texto de tus apuntes..."></textarea>
       </mat-form-field>
 
-      <button mat-raised-button color="primary" (click)="enviarPregunta()" [disabled]="cargando">
-        Procesar con IA
+      <button mat-raised-button color="primary" (click)="generarResumen()" [disabled]="cargando">
+        Generar Resumen
       </button>
 
       <div *ngIf="cargando" style="margin-top: 20px; display: flex; align-items: center; gap: 10px;">
         <mat-spinner diameter="30"></mat-spinner>
-        <span>El cerebro está pensando...</span>
+        <span>Generando resumen...</span>
       </div>
 
-      <div *ngIf="respuestaIa" style="margin-top: 20px; background: #f5f5f5; padding: 15px; border-radius: 8px;">
-        <strong>Respuesta del Sistema:</strong>
-        <p style="margin-top: 5px; white-space: pre-line;">{{ respuestaIa }}</p>
+      <div *ngIf="errorMensaje" style="margin-top: 20px; background: #fdecea; color: #b71c1c; padding: 15px; border-radius: 8px;">
+        {{ errorMensaje }}
+      </div>
+
+      <div *ngIf="resumenGenerado" style="margin-top: 20px; background: #f5f5f5; padding: 15px; border-radius: 8px;">
+        <strong>Resumen:</strong>
+        <p style="margin-top: 5px; white-space: pre-line;">{{ resumenGenerado }}</p>
       </div>
     </mat-card-content>
   </mat-card>

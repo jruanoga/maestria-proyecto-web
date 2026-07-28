@@ -40,14 +40,15 @@ interface Documento {
 export class DashboardComponent {
   nombreUsuario: string = 'Estudiante';
 
-  // --- Documentos (ya existente) ---
+  // --- Documentos ---
   documentos$: Observable<Documento[]>;
   columnasVisibles: string[] = ['titulo', 'materia'];
 
-  // --- Práctica genérica de IA (Sesión 6) ---
-  textoUsuario: string = '';
-  respuestaIa: string = '';
+  // --- Generador de Resumen con IA ---
+  contenidoDocumento: string = '';
+  resumenGenerado: string = '';
   cargando: boolean = false;
+  errorMensaje: string = '';
 
   constructor(
     private router: Router,
@@ -61,22 +62,23 @@ export class DashboardComponent {
     this.router.navigate(['/login']);
   }
 
-  enviarPregunta(): void {
-    if (!this.textoUsuario.trim()) {
+  generarResumen(): void {
+    if (!this.contenidoDocumento.trim()) {
       return;
     }
 
     this.cargando = true;
-    this.respuestaIa = '';
+    this.resumenGenerado = '';
+    this.errorMensaje = '';
 
-    this.aiService.consultarInteligenciaArtificial(this.textoUsuario).subscribe({
+    this.aiService.generarResumen(this.contenidoDocumento).subscribe({
       next: (res) => {
-        this.respuestaIa = res.respuesta;
+        this.resumenGenerado = res.resumen;
         this.cargando = false;
       },
       error: (err) => {
-        console.error('Error al consultar la IA:', err);
-        this.respuestaIa = 'Ocurrió un error al procesar tu solicitud con el cerebro.';
+        console.error('Error al generar el resumen:', err);
+        this.errorMensaje = 'No se pudo generar el resumen. Intenta de nuevo en unos segundos.';
         this.cargando = false;
       }
     });
