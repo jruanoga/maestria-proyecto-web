@@ -1,22 +1,74 @@
-<mat-card class="welcome-card">
-  <mat-card-header>
-    <mat-card-title>Mis Documentos</mat-card-title>
-  </mat-card-header>
-  <mat-card-content>
-    <table mat-table [dataSource]="(documentos$ | async) ?? []" class="mat-elevation-z1">
+<mat-toolbar color="primary">
+  <span>StudyMate AI</span>
+  <span class="spacer"></span>
+  <button mat-stroked-button (click)="cerrarSesion()">
+    <mat-icon>logout</mat-icon>
+    Cerrar Sesión
+  </button>
+</mat-toolbar>
 
-      <ng-container matColumnDef="titulo">
-        <th mat-header-cell *matHeaderCellDef>Título</th>
-        <td mat-cell *matCellDef="let doc">{{ doc.titulo }}</td>
-      </ng-container>
+<div class="dashboard-content">
+  <mat-card class="welcome-card">
+    <mat-card-header>
+      <mat-card-title>¡Bienvenido, {{ nombreUsuario }}!</mat-card-title>
+      <mat-card-subtitle>Tu asistente de estudio con IA</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <p>Sube un documento y genera resúmenes y quizzes automáticamente.</p>
+    </mat-card-content>
+    <mat-card-actions>
+      <button mat-raised-button color="primary">Subir Documento</button>
+    </mat-card-actions>
+  </mat-card>
 
-      <ng-container matColumnDef="materia">
-        <th mat-header-cell *matHeaderCellDef>Materia</th>
-        <td mat-cell *matCellDef="let doc">{{ doc.materia }}</td>
-      </ng-container>
+  <mat-card class="welcome-card">
+    <mat-card-header>
+      <mat-card-title>Mis Documentos</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <table mat-table [dataSource]="(documentos$ | async) ?? []" class="mat-elevation-z1">
 
-      <tr mat-header-row *matHeaderRowDef="columnasVisibles"></tr>
-      <tr mat-row *matRowDef="let row; columns: columnasVisibles;"></tr>
-    </table>
-  </mat-card-content>
-</mat-card>
+        <ng-container matColumnDef="titulo">
+          <th mat-header-cell *matHeaderCellDef>Título</th>
+          <td mat-cell *matCellDef="let doc">{{ doc.titulo }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="materia">
+          <th mat-header-cell *matHeaderCellDef>Materia</th>
+          <td mat-cell *matCellDef="let doc">{{ doc.materia }}</td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="columnasVisibles"></tr>
+        <tr mat-row *matRowDef="let row; columns: columnasVisibles;"></tr>
+      </table>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<div class="dashboard-container" style="padding: 20px;">
+  <mat-card class="ai-card">
+    <mat-card-header>
+      <mat-card-title>Asistente Inteligente (SaaS AI)</mat-card-title>
+    </mat-card-header>
+    <mat-card-content style="margin-top: 15px;">
+      <mat-form-field appearance="outline" style="width: 100%;">
+        <mat-label>Escribe un texto o consulta para analizar...</mat-label>
+        <input matInput [(ngModel)]="textoUsuario" placeholder="Ej. Analiza este reporte de ventas...">
+      </mat-form-field>
+
+      <button mat-raised-button color="primary" (click)="enviarPregunta()" [disabled]="cargando">
+        Procesar con IA
+      </button>
+
+      <div *ngIf="cargando" style="margin-top: 20px; display: flex; align-items: center; gap: 10px;">
+        <mat-spinner diameter="30"></mat-spinner>
+        <span>El cerebro está pensando...</span>
+      </div>
+
+      <div *ngIf="respuestaIa" style="margin-top: 20px; background: #f5f5f5; padding: 15px; border-radius: 8px;">
+        <strong>Respuesta del Sistema:</strong>
+        <p style="margin-top: 5px; white-space: pre-line;">{{ respuestaIa }}</p>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
