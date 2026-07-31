@@ -1,3 +1,3 @@
 export const environment = {
-  apiUrl: 'http://localhost:8080'
+  apiUrl: 'https://studymate-ai-35h1.onrender.com'
 };
