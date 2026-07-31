@@ -27,4 +27,11 @@ public class AiController {
         String resumen = iaService.generarResumen(contenido);
         return Map.of("resumen", resumen);
     }
+
+    @PostMapping("/preguntas")
+    public Map<String, String> generarPreguntas(@RequestBody Map<String, String> body) {
+        String contenido = body.get("contenido");
+        String preguntas = iaService.generarPreguntas(contenido);
+        return Map.of("preguntas", preguntas);
+    }
 }
