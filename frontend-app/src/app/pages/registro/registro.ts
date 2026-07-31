@@ -1,15 +1,17 @@
 import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-registro',
   standalone: true,
-  imports: [FormsModule, MatCardModule, MatInputModule, MatButtonModule],
+  imports: [CommonModule, FormsModule, MatCardModule, MatInputModule, MatButtonModule],
   templateUrl: './registro.html',
   styleUrl: './registro.css'
 })
@@ -37,7 +39,7 @@ export class RegistroComponent {
       password: this.password
     };
 
-    this.http.post<any>('http://localhost:8080/api/v1/auth/registro', datos).subscribe({
+    this.http.post<any>(`${environment.apiUrl}/api/v1/auth/registro`, datos).subscribe({
       next: () => {
         this.cargando = false;
         this.router.navigate(['/login']);
