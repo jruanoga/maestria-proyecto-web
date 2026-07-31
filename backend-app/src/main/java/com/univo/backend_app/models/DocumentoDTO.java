@@ -12,6 +12,11 @@ public class DocumentoDTO {
 
     private String titulo;
 
+    private String usuarioEmail;
+
+    public String getUsuarioEmail() { return usuarioEmail; }
+    public void setUsuarioEmail(String usuarioEmail) { this.usuarioEmail = usuarioEmail; }
+
     @Column(columnDefinition = "TEXT")
     private String contenido;
 

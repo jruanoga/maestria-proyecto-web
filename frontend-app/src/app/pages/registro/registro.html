@@ -1,0 +1,32 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Crear Cuenta</mat-card-title>
+  </mat-card-header>
+
+  <mat-card-content>
+    <mat-form-field appearance="fill" style="width: 100%;">
+      <mat-label>Nombre</mat-label>
+      <input matInput [(ngModel)]="nombre" placeholder="Tu nombre completo">
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" style="width: 100%;">
+      <mat-label>Correo Electrónico</mat-label>
+      <input matInput type="email" [(ngModel)]="email" placeholder="ejemplo@univo.edu.mx">
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" style="width: 100%;">
+      <mat-label>Contraseña</mat-label>
+      <input matInput type="password" [(ngModel)]="password" placeholder="Tu contraseña">
+    </mat-form-field>
+
+    <div *ngIf="errorMensaje" style="color: #b71c1c; margin-bottom: 10px;">
+      {{ errorMensaje }}
+    </div>
+  </mat-card-content>
+
+  <mat-card-actions>
+    <button mat-raised-button color="primary" (click)="hacerRegistro()" [disabled]="cargando">
+      Registrarme
+    </button>
+  </mat-card-actions>
+</mat-card>

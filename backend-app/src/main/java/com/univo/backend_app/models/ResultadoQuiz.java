@@ -14,6 +14,11 @@ public class ResultadoQuiz {
     private Integer aciertos;
     private Integer total;
 
+    private String usuarioEmail;
+
+    public String getUsuarioEmail() { return usuarioEmail; }
+    public void setUsuarioEmail(String usuarioEmail) { this.usuarioEmail = usuarioEmail; }
+
     public ResultadoQuiz() {
     }
 
