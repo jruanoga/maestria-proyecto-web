@@ -57,7 +57,12 @@ export class DashboardComponent {
   progreso$: Observable<ProgresoMateria[]>;
   // --- Documentos ---
   documentos$: Observable<Documento[]>;
-  columnasVisibles: string[] = ['titulo', 'materia'];
+  columnasVisibles: string[] = ['titulo', 'materia', 'acciones'];
+  mostrarFormularioDocumento: boolean = false;
+  nuevoTitulo: string = '';
+  nuevaMateria: string = '';
+  nuevoContenido: string = '';
+  guardandoDocumento: boolean = false;
 
   // --- Generador de Resumen ---
   contenidoDocumento: string = '';
@@ -86,6 +91,57 @@ export class DashboardComponent {
   cerrarSesion(): void {
     this.router.navigate(['/login']);
   }
+
+  toggleFormularioDocumento(): void {
+  this.mostrarFormularioDocumento = !this.mostrarFormularioDocumento;
+}
+
+seleccionarDocumento(doc: Documento): void {
+  this.contenidoDocumento = doc.contenido;
+  this.materiaQuiz = doc.materia;
+
+  this.resumenGenerado = '';
+  this.preguntas = [];
+  this.quizEnviado = false;
+  this.resultadoQuiz = '';
+  this.cdr.detectChanges();
+}
+
+guardarDocumento(): void {
+  if (!this.nuevoTitulo.trim() || !this.nuevoContenido.trim()) {
+    return;
+  }
+
+  this.guardandoDocumento = true;
+
+  const nuevoDocumento = {
+    titulo: this.nuevoTitulo,
+    materia: this.nuevaMateria || 'General',
+    contenido: this.nuevoContenido
+  };
+
+  this.http.post('http://localhost:8080/api/v1/documentos', nuevoDocumento).subscribe({
+    next: () => {
+      this.guardandoDocumento = false;
+
+      // Pasamos el contenido al generador de resumen/quiz
+      this.contenidoDocumento = this.nuevoContenido;
+      this.materiaQuiz = this.nuevaMateria;
+
+      this.nuevoTitulo = '';
+      this.nuevaMateria = '';
+      this.nuevoContenido = '';
+      this.mostrarFormularioDocumento = false;
+      this.documentos$ = this.http.get<Documento[]>('http://localhost:8080/api/v1/documentos');
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error('Error al guardar el documento:', err);
+      this.guardandoDocumento = false;
+      this.cdr.detectChanges();
+    }
+  });
+}
 
   generarResumen(): void {
     if (!this.contenidoDocumento.trim()) {
