@@ -17,4 +17,8 @@ export class AiService {
   generarResumen(contenido: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/resumen`, { contenido });
   }
+
+  generarPreguntas(contenido: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/preguntas`, { contenido });
+  }
 }

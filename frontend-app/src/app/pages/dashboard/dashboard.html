@@ -45,6 +45,26 @@
   </mat-card>
 </div>
 
+<mat-card class="welcome-card">
+  <mat-card-header>
+    <mat-card-title>Mi Progreso por Materia</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <div *ngFor="let p of (progreso$ | async)" style="margin-bottom: 15px;">
+      <div style="display: flex; justify-content: space-between;">
+        <strong>{{ p.materia }}</strong>
+        <span>{{ p.totalAciertos }} / {{ p.totalPreguntas }} ({{ (p.totalAciertos / p.totalPreguntas * 100) | number:'1.0-0' }}%)</span>
+      </div>
+      <div style="background: #e0e0e0; border-radius: 4px; height: 10px; margin-top: 5px;">
+        <div [style.width.%]="(p.totalAciertos / p.totalPreguntas * 100)"
+             [style.background]="(p.totalAciertos / p.totalPreguntas * 100) >= 70 ? '#4caf50' : ((p.totalAciertos / p.totalPreguntas * 100) >= 40 ? '#ff9800' : '#f44336')"
+             style="height: 10px; border-radius: 4px;">
+        </div>
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>
+
 <div class="dashboard-container" style="padding: 20px;">
   <mat-card class="ai-card">
     <mat-card-header>
@@ -74,6 +94,61 @@
         <strong>Resumen:</strong>
         <p style="margin-top: 5px; white-space: pre-line;">{{ resumenGenerado }}</p>
       </div>
+    </mat-card-content>
+  </mat-card>
+</div>
+<div class="dashboard-container" style="padding: 20px;">
+  <mat-card class="ai-card">
+    <mat-card-header>
+      <mat-card-title>Quiz de Autoevaluación</mat-card-title>
+    </mat-card-header>
+    <mat-card-content style="margin-top: 15px;">
+      <mat-form-field appearance="outline" style="width: 100%; margin-bottom: 10px;">
+  <mat-label>Materia de este contenido</mat-label>
+  <input matInput [(ngModel)]="materiaQuiz" placeholder="Ej. Redes, Bases de Datos...">
+      </mat-form-field>
+      <button mat-raised-button color="accent" (click)="generarQuiz()" [disabled]="cargandoQuiz">
+        Generar Quiz de este Documento
+      </button>
+
+      <div *ngIf="cargandoQuiz" style="margin-top: 20px; display: flex; align-items: center; gap: 10px;">
+        <mat-spinner diameter="30"></mat-spinner>
+        <span>Generando preguntas...</span>
+      </div>
+
+      <div *ngIf="errorQuiz" style="margin-top: 20px; background: #fdecea; color: #b71c1c; padding: 15px; border-radius: 8px;">
+        {{ errorQuiz }}
+      </div>
+
+      <div *ngIf="preguntas.length > 0" style="margin-top: 20px;">
+  <div *ngFor="let p of preguntas; let i = index" style="margin-bottom: 20px;">
+    <p><strong>{{ i + 1 }}. {{ p.pregunta }}</strong></p>
+
+    <mat-radio-group [(ngModel)]="p.respuestaSeleccionada" [disabled]="quizEnviado" style="display: flex; flex-direction: column;">
+      <mat-radio-button *ngFor="let opcion of p.opciones" [value]="opcion">
+        {{ opcion }}
+      </mat-radio-button>
+    </mat-radio-group>
+
+    <div *ngIf="quizEnviado">
+      <p *ngIf="p.respuestaSeleccionada === p.respuestaCorrecta" style="color: #1b5e20; font-weight: bold;">
+        ✔ Correcto
+      </p>
+      <p *ngIf="p.respuestaSeleccionada !== p.respuestaCorrecta" style="color: #b71c1c; font-weight: bold;">
+        ✘ Incorrecto — la respuesta correcta era: {{ p.respuestaCorrecta }}
+      </p>
+    </div>
+  </div>
+
+  <button mat-raised-button color="primary" (click)="enviarQuiz()" [disabled]="quizEnviado">
+    Enviar Respuestas
+  </button>
+</div>
+
+      <div *ngIf="quizEnviado" style="margin-top: 20px; background: #e8f5e9; color: #1b5e20; padding: 15px; border-radius: 8px;">
+        <strong>{{ resultadoQuiz }}</strong>
+      </div>
+
     </mat-card-content>
   </mat-card>
 </div>
