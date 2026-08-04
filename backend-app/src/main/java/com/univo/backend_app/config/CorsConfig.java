@@ -10,9 +10,10 @@ public class CorsConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOrigins(
-                    "http://localhost:4200",
-                    "https://studymate-ai-jsph1.vercel.app",
-                        "https://www.josephruano.com"
+                        "http://localhost:4200",
+                        "https://studymate-ai-jsph1.vercel.app",
+                        "https://www.josephruano.com",
+                        "https://josephruano.com"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*");
