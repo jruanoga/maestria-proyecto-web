@@ -9,3 +9,8 @@ StudyMate AI es un asistente de estudio que ayuda a estudiantes a comprender y r
 * **Backend:** Java + Spring Boot
 * **Base de Datos:** PostgreSQL (alojada en Neon - Serverless)
 * **IA:** Spring AI + Modelos de Lenguaje
+
+## Análisis de ingeniería de software
+Revisión del repositorio (requisitos, metodología, arquitectura, casos de uso, secuencias, modelo de datos, decisiones y SQA):
+
+* [docs/analisis-ingenieria-software.md](docs/analisis-ingenieria-software.md)
