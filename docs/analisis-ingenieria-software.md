@@ -12,6 +12,22 @@
 
 Los requisitos se reconstruyen a partir del README, de las pantallas Angular (`login`, `registro`, `dashboard`) y de los endpoints REST del backend Spring Boot.
 
+### Cómo leer esta sección
+
+Un **requisito** no es “una pantalla” ni “una clase Java”. Es una **obligación del sistema** frente a un usuario o al entorno.
+
+- **Funcional (RF):** *qué hace* el producto. Se puede demostrar con un flujo: “el estudiante sube un apunte y obtiene un resumen”. Si lo quitas, falta una capacidad.
+- **No funcional (RNF):** *cómo debe comportarse* mientras hace esas cosas: seguro, usable, desplegable, mantenible. Si lo quitas, la función “sigue existiendo”, pero mal (contraseñas en claro, UI congelada, no se puede publicar).
+
+El hilo de negocio del README es uno solo: **reducir tiempo de estudio y reforzar aprendizaje activo**. Todos los RF de abajo son piezas de esa cadena:
+
+```text
+Crear cuenta → entrar → guardar apuntes → (re)abrirlos → resumir con IA
+    → autoevaluarse con quiz → guardar nota → ver progreso por materia
+```
+
+Sin RF-01/02 no hay usuario. Sin RF-04/06 no hay material. Sin RF-07/08/09 no hay “asistente”. Sin RF-10/11 no hay memoria de aprendizaje. RF-03 y RF-13 no son “features de lujo”: son la condición para que lo anterior no se mezcle entre estudiantes.
+
 ### 0.1 Requisitos funcionales (RF)
 
 | ID | Requisito | Evidencia en el código |
@@ -62,6 +78,104 @@ Los requisitos se reconstruyen a partir del README, de las pantallas Angular (`l
 - `cerrarSesion()` no elimina `auth_token` de `localStorage`.
 - No hay CI (GitHub Actions), ni pruebas e2e, ni validación de esquema OpenAPI.
 - `hibernate.ddl-auto=update` no es una estrategia de migraciones de producción.
+
+### 0.3 Explicación detallada de cada requisito funcional
+
+Piénsalos como **historias de usuario** con criterio de aceptación. El “si falla” es tan importante como el flujo feliz: ahí se ve si el requisito está realmente cubierto.
+
+#### Identidad y acceso (RF-01 a RF-03 y RF-12)
+
+**RF-01 — Registrarse.**  
+El sistema no nace con usuarios precargados. Un visitante en `/registro` da nombre, correo y contraseña. El backend comprueba que ese correo no exista (`409`) y guarda el password **hasheado**. Criterio de aceptación: dos personas no pueden compartir el mismo email; después del alta se va a login (aún no hay sesión). Si el correo ya existe, el UI dice “Ese correo ya está registrado.”
+
+**RF-02 — Iniciar sesión.**  
+No es “entrar a una pantalla”: es **demostrar identidad**. El backend busca el email, compara el password con BCrypt y, si coincide, emite un JWT (subject = email, claim `nombre`, 24 h). El frontend guarda `auth_token` en `localStorage` y navega al dashboard. Si falla: HTTP 401 y alerta. Sin este RF, RF-04…RF-11 no tienen dueño.
+
+**RF-03 — Proteger el dashboard.**  
+`/dashboard` es zona privada. El `AuthGuard` mira si hay token en el navegador; si no, redirige a `/login`. Ojo: es protección **de ruta en el cliente**. El servidor, hoy, no exige JWT en un filtro de Spring Security (`permitAll`). RF-03 cubre “un extraño no ve la UI”; no cubre por sí solo “un extraño no puede pegarle al API”.
+
+**RF-12 — Cerrar sesión.**  
+Intención: volver a visitante. Implementación actual: solo `navigate(['/login'])`. El token **sigue en `localStorage`**, así que si el usuario escribe `/dashboard` a mano, el guard lo deja pasar. El requisito de producto existe; el criterio de aceptación “la sesión queda inválida en este browser” **no se cumple del todo**.
+
+#### Material de estudio (RF-04 a RF-06)
+
+**RF-04 — Guardar documento.**  
+El “subir documento” del README **no es un archivo PDF**: es pegar título, materia y texto. Materia vacía → `General`. Sin título o contenido, el botón no hace nada. El servidor ignora cualquier `usuarioEmail` del JSON y pone el email del JWT. Ejemplo: apunte “Capas OSI” / materia “Redes” / párrafo de clase.
+
+**RF-05 — Listar solo los míos.**  
+Al abrir el dashboard se pide `GET /documentos`. La tabla “Mis Documentos” no es un `findAll()` global: `findByUsuarioEmail`. Si Ana y Bruno usan la misma app, Ana no debe ver los apuntes de Bruno. Esto es el requisito de **confidencialidad de datos de estudio**, no solo “mostrar una tabla”.
+
+**RF-06 — Estudiar un documento ya guardado.**  
+“Estudiar” no llama a la IA todavía. Copia `contenido` y `materia` al área de trabajo y **limpia** resumen/quiz anteriores, para no mezclar un examen de Redes con apuntes de Base de Datos. RF-06 es el puente entre la biblioteca (RF-05) y las funciones de IA (RF-07/08).
+
+#### Asistente de IA y autoevaluación (RF-07 a RF-11)
+
+**RF-07 — Generar resumen.**  
+Problema de negocio: el estudiante tarda en sintetizar. El sistema manda el texto a Groq con un *system prompt* de “asistente experto en estudio”, máximo 5 líneas, sin opiniones. El resumen es **efímero**: si recargas, se pierde (no hay columna `resumen`). Si Groq falla, se muestra un error y se puede reintentar; la app no se cae. Criterio: dado un apunte no vacío, aparece un párrafo corto o un mensaje de fallo explícito.
+
+**RF-08 — Generar quiz.**  
+Aprendizaje activo = evaluarse, no solo leer. El prompt pide **exactamente 5** preguntas, 4 opciones y `respuestaCorrecta`, en JSON puro. El frontend es desconfiado: recorta ```json y parsea. Si el LLM inventa prosa, RF-08 se considera fallido de forma controlada (“inténtalo de nuevo”), no con una pantalla rota. El quiz también es efímero hasta que se envía (RF-10).
+
+**RF-09 — Resolver y ver retroalimentación inmediata.**  
+Aquí vive el valor pedagógico. El estudiante marca radios, envía, y ve ✔ o ✘ con la clave, más “Obtuviste 3 de 5”. El quiz se bloquea (`quizEnviado`) para no cambiar respuestas después de ver la solución. Esto es **feedback inmediato**; todavía no es historial (eso es RF-10).
+
+**RF-10 — Persistir el resultado.**  
+Si solo existiera RF-09, al cerrar el navegador se olvida el desempeño. RF-10 graba `materia`, `aciertos`, `total` y el email del token. No guarda cada pregunta, solo el agregado del intento. Varios quizzes de “Redes” se apilan como filas; no se sobreescriben.
+
+**RF-11 — Progreso por materia.**  
+Es la vista de **tendencia**, no de un examen. El API suma aciertos y totales agrupando por materia. La barra pinta verde (≥70 %), naranja (≥40 %) o roja. Ejemplo: 3/5 + 4/5 en Redes → 7/10 (70 %, verde). Sin RF-10 este requisito no tiene datos.
+
+#### Aislamiento multiusuario (RF-13)
+
+No es una pantalla: es una **regla de integridad**. Cualquier alta de documento o resultado **sobrescribe** el email con el del JWT. Aunque el cliente mande `usuarioEmail: "ana@univo.edu"`, si el token es de Bruno, se guarda como Bruno. Lista y progreso usan el mismo criterio. RF-05 “listar los míos” **depende** de RF-13; si el dueño viniera del body, RF-05 sería engañable.
+
+**Dependencias (para no verlos como lista suelta):**
+
+```text
+RF-01 → RF-02 → RF-03
+                ↓
+         RF-04 → RF-05 → RF-06 → RF-07
+                              ↘ RF-08 → RF-09 → RF-10 → RF-11
+         RF-13 cruza RF-04, RF-05, RF-10 y RF-11
+         RF-12 cierra RF-02/RF-03 (hoy, a medias)
+```
+
+### 0.4 Explicación detallada de cada requisito no funcional
+
+Los RNF no se “cliquean”. Se notan cuando **faltan** (login lento, otro origen bloqueado, password filtrado, deploy irreproducible).
+
+**Arquitectura y operación**
+
+- **RNF-01.** Angular y Spring Boot son dos artefactos. El contrato es HTTP JSON bajo `/api/v1`. Sirve para desplegar UI y API por separado y para no mezclar HTML del servidor con la SPA.
+- **RNF-06.** El producto tiene que vivir en internet, no solo en `localhost`: Vercel (front), Render/Docker (API), Neon (datos).
+- **RNF-07.** Cualquiera debe poder construir el JAR igual: Maven Wrapper + imagen `eclipse-temurin:21` en dos etapas (compila con JDK, corre con JRE).
+- **RNF-12.** En local el API es `http://localhost:8080`; en producción, Render. Eso evita hardcodear una sola URL.
+- **RNF-15.** PostgreSQL serverless (Neon) en lugar de H2: los apuntes y notas sobreviven a reinicios del contenedor y a más de un usuario real.
+
+**Seguridad e integridad**
+
+- **RNF-02.** Si alguien copia la tabla `usuarios`, no obtiene la contraseña: ve un hash BCrypt. Distinto de RF-02 (que es “poder entrar”).
+- **RNF-03.** API sin sesión HTTP. El cliente reenvía el JWT; a las 24 h deja de servir. Encaja con SPA en otro dominio.
+- **RNF-04.** `GROQ_API_KEY`, `JWT_SECRET` y credenciales de BD no van en Git. Si se subieran, cualquiera gastaría el cupo de Groq o firmaría tokens.
+- **RNF-05.** El navegador bloquea llamadas cross-origin salvo allowlist: localhost, Vercel y `josephruano.com`. Sin esto, RF-07 “funciona en Postman” y falla en el sitio publicado.
+- **RNF-10.** Email único (regla de negocio de RF-01) y `TEXT` para apuntes largos (VARCHAR se quedaría corto).
+
+**Experiencia, IA y calidad de código**
+
+- **RNF-08.** Material, spinners, botones deshabilitados, mensajes rojos: el estudiante entiende que la IA está pensando o que el correo ya existe.
+- **RNF-09.** La llamada a Groq es asíncrona. Si fuera síncrona bloqueante en UI, un resumen de 8 s “congelaría” la página. El requisito es de **percepción**, no de milisegundos medidos.
+- **RNF-11.** El LLM debe ser barato y hablar “OpenAI” para que Spring AI no se reescriba. Groq + Llama 3.1 8B Instant es esa decisión; no es un RF (“generar resumen”) sino *con qué restricciones* se genera.
+- **RNF-13 / RNF-14.** Budgets de bundle y Prettier/EditorConfig: el front no se infla sin aviso y el estilo no pelea en cada commit. Son SQA, no features.
+
+**Cómo distinguir RF de RNF con un mismo tema**
+
+| Tema | Requisitos funcional | Requisito no funcional |
+| --- | --- | --- |
+| Login | RF-02: entrar con email/password y recibir token | RNF-02/03: password hasheado, token firmado y con caducidad |
+| Documentos | RF-04: guardar apunte | RNF-10: contenido `TEXT`; RNF-15: sobrevive en Neon |
+| Resumen | RF-07: obtener un resumen del apunte | RNF-09: la UI no se bloquea; RNF-11: el modelo es Groq/Llama |
+| Multiusuario | RF-13: los datos son del dueño del JWT | RNF-03: autenticación stateless que hace posible identificarlo |
+| Publicar la app | (ningún RF nuevo) | RNF-05, RNF-06, RNF-12: CORS, nubes, URL por ambiente |
 
 ---
 
